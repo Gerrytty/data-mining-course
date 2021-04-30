@@ -46,56 +46,79 @@ if __name__ == "__main__":
     real_answer = 4
 
     weights = [
+        # выход с первого слоя на второй
         [[0.1, 0.2],     # выход на первый нейрон
          [0.15, 0.08]],  # выход на второй нейрон
+        # выход со второго слоя на третий
         [[0.1, 0.2],     # выход на первый нейрон
-         [0.15, 0.08]],
-        [[0.05, 0.2]]
+         [0.15, 0.08]],  # выход на первый нейрон
+        # выход на выходное значение
+        [[0.05, 0.2]]    # выход на выход
     ]
 
     inputs_arr = inputs.copy()
 
-    outs = []
+    for iters in range(2):
 
-    # forward
-    print("Forward")
-    for i, weights_on_layer in enumerate(weights):
-        print(f"layer = {i}")
-        print(f"inputs = {inputs_arr}")
-        out_puts = []
+        outs = []
 
-        for connect_weights in weights_on_layer:
-            out_puts.append(calc_node(inputs_arr, connect_weights))
+        # forward
+        print("Forward")
+        for i, weights_on_layer in enumerate(weights):
+            print(f"layer = {i}")
+            print(f"inputs = {inputs_arr}")
+            out_puts = []
 
-        print(f"ouputs = {out_puts}")
-        outs.append(out_puts)
+            for connect_weights in weights_on_layer:
+                out_puts.append(calc_node(inputs_arr, connect_weights))
 
-        inputs_arr = out_puts
+            print(f"outputs = {out_puts}")
+            outs.append(out_puts)
 
-    ans = inputs_arr[0]
-    print(f"Answer is {inputs_arr[0]}")
+            inputs_arr = out_puts
 
-    print(outs)
+        ans = inputs_arr[0]
+        print(f"Answer is {inputs_arr[0]}")
 
-    # back
-    print("Back")
-    for i, out in enumerate(outs[::-1]):
-        print(out)
+        # back
+        print("Back")
 
-        weights_delta = 0
+        # хранит weights deltas каждого нейрона предыдущего слоя
+        weights_delta_arr = []
+        for i, out in enumerate(outs[::-1]):
+            print(f"{i} iter")
+            if i == 0:
+                for output_neuron in out:
+                    # считаем ошибку на выходном нейроне
+                    error = math.sqrt((real_answer - output_neuron) ** 2)
+                    weights_delta = error * sigmoid_derivative(output_neuron)
+                    weights_delta_arr.append(weights_delta)
 
-        if i == 0:
-            error = math.sqrt((real_answer - out[0]) ** 2)
-            weights_delta = error * sigmoid_derivative(out[0])
-            synaptic_weights = weights[len(weights) - 1]
-            for j in range(len(synaptic_weights[0])):
-                new_w = get_changed_weight(synaptic_weights[0][j], weights_delta, out[0])
-                weights[len(weights) - 1][0][j] = new_w
-        else:
-            errors = []
+                    # проход по входным синапсам выходного нейрона
+                    synaptic_weights_arr = weights[len(weights) - (i + 1)]
+                    print(synaptic_weights_arr)
+                    for output_neuron_index, synaptic_weights in enumerate(synaptic_weights_arr):
+                        for j, syn_w in enumerate(synaptic_weights):
+                            new_w = get_changed_weight(syn_w, weights_delta, output_neuron)
+                            weights[len(weights) - (i + 1)][output_neuron_index][j] = new_w
+            else:
+                errors = []
 
-            for neuron in out:
-                # error = weights_delta * weights[len(weights) - (i + 1)]
-                print(neuron)
-                print(weights[len(weights) - (i + 1)])
-            raise Exception
+                # новый массив для хранения weights delta
+                new_weights_delta_arr = []
+
+                for output_neuron_index, output_neuron in enumerate(out):
+                    print(f"out neuron = {output_neuron}")
+                    for wd in weights_delta_arr:
+                        print(f"weights delta {wd}")
+                        layer_arr = weights[len(weights) - (i + 1)]
+                        for neuron_index, neuron in enumerate(layer_arr):
+                            for syn_index, syn_w in enumerate(neuron):
+                                error = wd * syn_w
+                                weights_delta = error * sigmoid_derivative(output_neuron)
+                                new_w = get_changed_weight(syn_w, weights_delta, output_neuron)
+                                weights[len(weights) - (i + 1)][output_neuron_index][syn_index] = new_w
+                                new_weights_delta_arr.append(weights_delta)
+
+                weights_delta_arr = new_weights_delta_arr
+                print(weights_delta_arr)
