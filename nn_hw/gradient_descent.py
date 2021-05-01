@@ -1,5 +1,7 @@
 import matplotlib.pyplot as plt
 
+learning_rate = 0.1
+
 
 def f(x):
     return x * x
@@ -12,13 +14,13 @@ def df(x):
 # градиентный спуск
 # находим точку минимума функции x^2
 def gradient_descent():
-    init_x = -20
+    minimum = -20
     for i in range(1000):
-        init_x -= df(init_x) * 0.1
+        minimum -= df(minimum) * learning_rate
 
-    print(init_x)
+    print(minimum)
 
-    return init_x
+    return minimum
 
 
 if __name__ == "__main__":
