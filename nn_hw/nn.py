@@ -43,7 +43,7 @@ def calc_node(inputs, weights):
 if __name__ == "__main__":
 
     inputs = [1, 2]
-    real_answer = 4
+    real_answer = 0.5
 
     weights = [
         # выход с первого слоя на второй
@@ -58,7 +58,7 @@ if __name__ == "__main__":
 
     inputs_arr = inputs.copy()
 
-    for iters in range(2):
+    for iters in range(200):
 
         outs = []
 
